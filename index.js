@@ -94,13 +94,13 @@ function watch(host, url, timeout) {
     device.on('error', () => {
         log(`${host}: error, retrying in ${timeout}ms`)
         setTimeout(() => {
-            watch(host, url)
+            watch(host, url, timeout)
         }, timeout)
     })
     device.on('disconnect', () => {
         log(`${host}: disconnect, retrying in ${timeout}ms`)
         setTimeout(() => {
-            watch(host, url)
+            watch(host, url, timeout)
         }, timeout)
     })
 }
