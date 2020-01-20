@@ -32,7 +32,7 @@ function cast(host, device, url) {
             return
         }
 
-        log(`${device.address}: casting...`)
+        log(`${device.address}: casting...${url}`)
 
         // device.application('5C3F0A3C', function (err, app) {
         //     if (err) {

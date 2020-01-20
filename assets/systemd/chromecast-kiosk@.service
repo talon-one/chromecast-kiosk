@@ -1,0 +1,18 @@
+[Unit]
+Description=Chromecast-Kiosk
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /app/index.js
+WorkingDirectory=/app
+Restart=on-failure
+SuccessExitStatus=3 4
+RestartForceExitStatus=3 4
+
+# Hardening
+SystemCallArchitectures=native
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
