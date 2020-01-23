@@ -21,7 +21,7 @@ function isIdle(status) {
     return true
 }
 
-function cast(host, device, url) {
+function cast(host, device, url, reload) {
     device.status((err, status) => {
         if (err !== null && err !== undefined) {
             log(`${host}: error on getting status: ${err}`)
@@ -34,20 +34,21 @@ function cast(host, device, url) {
 
         log(`${device.address}: casting...${url}`)
 
+        // alternative to de.michaelkuerbis.kiosk
         // device.application('5C3F0A3C', function (err, app) {
-        //     if (err) {
-        //       log("unable to start application: ", err)
-        //       return
-        //     }
-        //     // log('Application', util.inspect(a));
         //     app.run('urn:x-cast:es.offd.dashcast', function (err, s) {
-        //       if (err) {
-        //         log("unable to run cast: ", err)
-        //         return 
-        //       }
         //       s.send({ url: url });
         //     });
         // });
+
+
+        if (reload !== undefined && reload !== null) {
+            log(`${device.address}: reloading in ${reload}ms`)
+            setTimeout(()=>{
+                cast(host, device, url, reload)
+            })
+        }
+
         device.application('10B2AF08', function (err, app) {
             if (err !== null && err !== undefined) {
                 log(`${device.address}: unable to start application: ${err}`)
@@ -66,7 +67,7 @@ function cast(host, device, url) {
 }
 
 
-function watch(host, url, timeout) {
+function watch(host, url, timeout, reload) {
     log(`connecting to ${host}`)
 
     const device = new nodecastor.CastDevice({
@@ -78,7 +79,7 @@ function watch(host, url, timeout) {
 
 
     device.on('connect', function () {
-        cast(host, device, url)
+        cast(host, device, url, reload)
     });
     device.on('status', (status) => {
         if (!isIdle(status)) {
@@ -88,19 +89,19 @@ function watch(host, url, timeout) {
 
         log(`${host}: casting in ${timeout}ms`)
         setTimeout(() => {
-            cast(host, device, url)
+            cast(host, device, url, reload)
         }, timeout)
     })
     device.on('error', () => {
         log(`${host}: error, retrying in ${timeout}ms`)
         setTimeout(() => {
-            watch(host, url, timeout)
+            watch(host, url, timeout, reload)
         }, timeout)
     })
     device.on('disconnect', () => {
         log(`${host}: disconnect, retrying in ${timeout}ms`)
         setTimeout(() => {
-            watch(host, url, timeout)
+            watch(host, url, timeout, reload)
         }, timeout)
     })
 }
@@ -112,5 +113,5 @@ function watch(host, url, timeout) {
 let config = JSON5.parse(fs.readFileSync('config.json'));
 
 for (let i = 0; i < config.length; i++) {
-    watch(config[i].Host, config[i].URL, config[i].Timeout || 60000);
+    watch(config[i].Host, config[i].URL, config[i].Timeout || 60000, config[i].Reload);
 }
