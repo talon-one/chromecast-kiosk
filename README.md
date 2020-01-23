@@ -9,7 +9,7 @@ Use chromecasts to display websites and act as dashboards, information displays 
 
 ## Installation
 1. Install dependencies with `yarn install`
-2. Adjust the config.json
+2. Copy the `config.example.json` to `config.json` and adjust it
 3. Specify one or multiple chromecasts hosts and the website that they should display
 4. run `node index.js`
 5. The chromecasts will start to cast the website
