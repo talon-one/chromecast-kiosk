@@ -35,7 +35,7 @@ function cast(host, device, url, reload) {
 
    
 
-        if (reload !== undefined && reload !== null && reload >== 0) {
+        if (reload !== undefined && reload !== null && reload >= 0) {
             log(`${device.address}: reloading in ${reload}ms`)
             setTimeout(()=>{
                 cast(host, device, url, reload)
@@ -70,7 +70,7 @@ function cast(host, device, url, reload) {
 function watch(host, url, timeout, reload) {
     log(`connecting to ${host}`)
 
-    if (timeout === undefined || timeout === null || timeout <== 0) {
+    if (timeout === undefined || timeout === null || timeout <= 0) {
         timeout = 60000;
     }
 
