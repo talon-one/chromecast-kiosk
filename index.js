@@ -7,15 +7,14 @@ function log(s) {
     console.log(new Date().toISOString() + " " + s)
 }
 
-function isIdle(status) {
+function shouldCast(status) {
     if (status.applications === undefined || status.applications === null) {
         return false;
     }
-    if (status.applications.length != 1) {
+    if (status.applications.length !== 1) {
         return false;
     }
-
-    if (status.applications[0].isIdleScreen !== true) {
+    if (status.applications[0].isIdleScreen !== true && status.applications[0].appId !== '10B2AF08') {
         return false;
     }
     return true
@@ -27,27 +26,28 @@ function cast(host, device, url, reload) {
             log(`${host}: error on getting status: ${err}`)
             return
         }
-        if (!isIdle(status)) {
+        if (!shouldCast(status)) {
             log(`${host}: is not idle`)
             return
         }
 
         log(`${device.address}: casting...${url}`)
 
-        // alternative to de.michaelkuerbis.kiosk
+   
+
+        if (reload !== undefined && reload !== null && reload >== 0) {
+            log(`${device.address}: reloading in ${reload}ms`)
+            setTimeout(()=>{
+                cast(host, device, url, reload)
+            }, reload)
+        }
+
+        // alternative to de.michaelkuerbis.kiosk (also change shouldCast function!)
         // device.application('5C3F0A3C', function (err, app) {
         //     app.run('urn:x-cast:es.offd.dashcast', function (err, s) {
         //       s.send({ url: url });
         //     });
         // });
-
-
-        if (reload !== undefined && reload !== null) {
-            log(`${device.address}: reloading in ${reload}ms`)
-            setTimeout(()=>{
-                cast(host, device, url, reload)
-            })
-        }
 
         device.application('10B2AF08', function (err, app) {
             if (err !== null && err !== undefined) {
@@ -70,6 +70,10 @@ function cast(host, device, url, reload) {
 function watch(host, url, timeout, reload) {
     log(`connecting to ${host}`)
 
+    if (timeout === undefined || timeout === null || timeout <== 0) {
+        timeout = 60000;
+    }
+
     const device = new nodecastor.CastDevice({
         friendlyName: 'Chromecast',
         address: host,
@@ -82,7 +86,7 @@ function watch(host, url, timeout, reload) {
         cast(host, device, url, reload)
     });
     device.on('status', (status) => {
-        if (!isIdle(status)) {
+        if (!shouldCast(status)) {
             log(`${host}: is not idle`)
             return
         }
@@ -113,5 +117,5 @@ function watch(host, url, timeout, reload) {
 let config = JSON5.parse(fs.readFileSync('config.json'));
 
 for (let i = 0; i < config.length; i++) {
-    watch(config[i].Host, config[i].URL, config[i].Timeout || 60000, config[i].Reload);
+    watch(config[i].Host, config[i].URL, config[i].Timeout, config[i].Reload);
 }

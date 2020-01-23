@@ -2,13 +2,13 @@
     {
         "Host": "192.168.101.250",       // Host or IP address of the chromecast
         "URL": "https://example.com",    // URL to cast
-        "Timeout": 60000,                // Re(Cast) & Reconnect every 60 seconds
-        "Reload": 1800000,               // Reload the website every 30 minutes
+        "Timeout": 60000,                // Re(Cast) & Reconnect every 60 seconds (removing results in default value (60000))
+        "Reload": 1800000,               // Reload the website every 30 minutes (remove or set to 0 to disable)
     },
     {
         "Host": "192.168.101.251",       // Host or IP address of the chromecast
         "URL": "https://example.com",    // URL to cast
-        "Timeout": 60000,                // Re(Cast) & Reconnect every 60 seconds
-        "Reload": 1800000,               // Reload the website every 30 minutes
+        "Timeout": 60000,                // Re(Cast) & Reconnect every 60 seconds (removing results in default value (60000))
+        "Reload": 1800000,               // Reload the website every 30 minutes (remove or set to 0 to disable)
     },
 ]
