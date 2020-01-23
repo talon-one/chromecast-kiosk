@@ -7,47 +7,70 @@ function log(s) {
     console.log(new Date().toISOString() + " " + s)
 }
 
-function shouldCast(status) {
+function isIdle(status) {
     if (status.applications === undefined || status.applications === null) {
         return false;
     }
     if (status.applications.length !== 1) {
         return false;
     }
-    if (status.applications[0].isIdleScreen !== true && status.applications[0].appId !== '10B2AF08') {
+    if (status.applications[0].isIdleScreen !== true) {
+        return false;
+    }
+    return true;
+}
+
+function isKiosk(status) {
+    if (status.applications === undefined || status.applications === null) {
+        return false;
+    }
+    if (status.applications.length !== 1) {
+        return false;
+    }
+    if (status.applications[0].appId !== '10B2AF08') {
         return false;
     }
     return true
 }
 
-function cast(host, device, url, reload) {
+function cast(host, device, url, reload, isReload) {
     device.status((err, status) => {
         if (err !== null && err !== undefined) {
             log(`${host}: error on getting status: ${err}`)
             return
         }
-        if (!shouldCast(status)) {
-            log(`${host}: is not idle`)
-            return
-        }
 
-        log(`${device.address}: casting...${url}`)
+        if (isReload === true)  {
+            if (!isIdle(status) && !isKiosk(status)) {
+                log(`${host}: unable to reload: is not idle nor in kiosk mode`);
+                return;
+            }
+        } else {
+            if (!isIdle(status)) {
+                log(`${host}: unable to cast: is not idle`);
+                return;
+            }
+        }
+        
+
+
+        log(`${device.address}: casting...${url} (reload:${isReload})`);
 
    
-
-        if (reload !== undefined && reload !== null && reload >= 0) {
-            log(`${device.address}: reloading in ${reload}ms`)
-            setTimeout(()=>{
-                cast(host, device, url, reload)
-            }, reload)
-        }
-
-        // alternative to de.michaelkuerbis.kiosk (also change shouldCast function!)
+        // alternative to de.michaelkuerbis.kiosk (also change isKiosk function!)
         // device.application('5C3F0A3C', function (err, app) {
         //     app.run('urn:x-cast:es.offd.dashcast', function (err, s) {
         //       s.send({ url: url });
         //     });
         // });
+
+         if (reload !== undefined && reload !== null && reload >= 0) {
+            log(`${device.address}: reloading in ${reload}ms`)
+            setTimeout(()=>{
+                cast(host, device, url, reload, true)
+            }, reload)
+        }
+
 
         device.application('10B2AF08', function (err, app) {
             if (err !== null && err !== undefined) {
@@ -61,6 +84,9 @@ function cast(host, device, url, reload) {
                     return
                 }
                 s.send({ url: url, type: "load", refresh: 0 });
+
+
+               
             });
         });
     });
@@ -83,17 +109,17 @@ function watch(host, url, timeout, reload) {
 
 
     device.on('connect', function () {
-        cast(host, device, url, reload)
+        cast(host, device, url, reload, true)
     });
     device.on('status', (status) => {
-        if (!shouldCast(status)) {
-            log(`${host}: is not idle`)
+        if (!isIdle(status)) {
+            log(`${host}: unable to cast: is not idle`)
             return
         }
 
         log(`${host}: casting in ${timeout}ms`)
         setTimeout(() => {
-            cast(host, device, url, reload)
+            cast(host, device, url, reload, false)
         }, timeout)
     })
     device.on('error', () => {
