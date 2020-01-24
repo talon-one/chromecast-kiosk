@@ -1,5 +1,6 @@
 [Unit]
 Description=Chromecast-Kiosk
+Requires=network-online.target
 After=network-online.target
 
 [Service]
@@ -12,4 +13,4 @@ MemoryDenyWriteExecute=true
 NoNewPrivileges=true
 
 [Install]
-WantedBy=network-online.target
+WantedBy=multi-user.target
