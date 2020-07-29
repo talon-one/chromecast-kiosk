@@ -93,7 +93,7 @@ function cast(host, device, url, reload, isReload) {
 }
 
 
-function watch(host, url, timeout, reload) {
+function watch(name, host, url, timeout, reload) {
     log(`connecting to ${host}`)
 
     if (timeout === undefined || timeout === null || timeout <= 0) {
@@ -101,7 +101,7 @@ function watch(host, url, timeout, reload) {
     }
 
     const device = new nodecastor.CastDevice({
-        friendlyName: 'Chromecast',
+        friendlyName: name,
         address: host,
         port: 8009,
         reconnect: false,
@@ -141,7 +141,28 @@ function watch(host, url, timeout, reload) {
 
 
 let config = JSON5.parse(fs.readFileSync('config.json'));
-
+let discoverDevices = [];
 for (let i = 0; i < config.length; i++) {
-    watch(config[i].Host, config[i].URL, config[i].Timeout, config[i].Reload);
+    if (config[i].Host === undefined || config[i].Host === null) {
+        discoverDevices.push(config[i]);
+        continue;
+    }
+    watch('Chromecast', config[i].Host, config[i].URL, config[i].Timeout, config[i].Reload);
+}
+
+
+if (discoverDevices.length > 0) {
+    console.log("scanning")
+    nodecastor.scan()
+    .on('online', device => {
+        for (var i = discoverDevices.length - 1; i >= 0; i--) {
+            if (device.friendlyName !== discoverDevices[i].Name) {
+                continue;
+            }
+            watch(device.friendlyName, device.address, discoverDevices[i].URL, discoverDevices[i].Timeout, discoverDevices[i].Reload);
+            discoverDevices.splice(i, 1);
+            return;
+        }
+    })
+    .start();
 }
