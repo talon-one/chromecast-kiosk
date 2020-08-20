@@ -105,7 +105,7 @@ function watch(name, host, url, timeout, reload) {
         address: host,
         port: 8009,
         reconnect: false,
-    })
+    });
 
 
     device.on('connect', function () {
@@ -113,26 +113,26 @@ function watch(name, host, url, timeout, reload) {
     });
     device.on('status', (status) => {
         if (!isIdle(status)) {
-            log(`${host}: unable to cast: is not idle`)
-            return
+            log(`${host}: unable to cast: is not idle`);
+            return;
         }
 
-        log(`${host}: casting in ${timeout}ms`)
+        log(`${host}: casting in ${timeout}ms`);
         setTimeout(() => {
-            cast(host, device, url, reload, false)
-        }, timeout)
+            cast(host, device, url, reload, false);
+        }, timeout);
     })
     device.on('error', () => {
-        log(`${host}: error, retrying in ${timeout}ms`)
+        log(`${host}: error, retrying in ${timeout}ms`);
         setTimeout(() => {
-            watch(host, url, timeout, reload)
-        }, timeout)
+            watch(name, host, url, timeout, reload);
+        }, timeout);
     })
     device.on('disconnect', () => {
-        log(`${host}: disconnect, retrying in ${timeout}ms`)
+        log(`${host}: disconnect, retrying in ${timeout}ms`);
         setTimeout(() => {
-            watch(host, url, timeout, reload)
-        }, timeout)
+            watch(name, host, url, timeout, reload);
+        }, timeout);
     })
 }
 
